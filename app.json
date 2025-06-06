@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "expo-boilerplate",
-    "slug": "expo-boilerplate",
+    "name": "2d-selector-grid",
+    "slug": "2d-selector-grid",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -40,6 +40,9 @@
     "extra": {
       "router": {
         "origin": false
+      },
+      "eas": {
+        "projectId": "5e04bb70-947e-4094-949a-88a481f346f8"
       }
     }
   }

@@ -1,17 +1,31 @@
-import React, { useEffect, useImperativeHandle, useState } from "react";
+import React, {
+  useEffect,
+  useImperativeHandle,
+  useLayoutEffect,
+  useState,
+} from "react";
 import Svg, { Circle } from "react-native-svg";
 import { GestureDetector, Gesture } from "react-native-gesture-handler";
 import Animated, {
   useSharedValue,
   useAnimatedProps,
   withSpring,
+  useDerivedValue,
+  SharedValue,
+  useAnimatedReaction,
 } from "react-native-reanimated";
+import GridDots from "./GridDots";
+import { Platform } from "react-native";
+import {
+  GRID_OFFSET,
+  GRID_RADIUS,
+  GRID_SPACING,
+  SPRING_CONFIG,
+} from "@/constants";
 
-const GRID_SPACING = 12;
-const GRID_OFFSET = GRID_SPACING / 1.5;
-const GRID_RADIUS = GRID_SPACING / 6;
-const DOT_INITIAL_Y = GRID_OFFSET + GRID_SPACING / 2;
-const FOCUSED_DOT_RADIUS = GRID_RADIUS + GRID_SPACING / 2.5;
+const FOCUSED_DOT_RADIUS = GRID_RADIUS + GRID_SPACING / 2.4;
+
+const isWeb = Platform.OS === "web";
 
 const clamp = (value: number, min: number, max: number) => {
   "worklet";
@@ -27,10 +41,9 @@ const getNearestGridPosition = (value: number) => {
   );
 };
 
-const SPRING_CONFIG = {
-  damping: 20,
-  stiffness: 240,
-  mass: 0.5,
+const ensureOddNumber = (num: number): number => {
+  const n = Math.max(3, num);
+  return n % 2 === 0 ? n + 1 : n;
 };
 
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
@@ -38,31 +51,49 @@ const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 export interface SelectorGridProps {
   color?: string;
   size?: number;
+  initialX?: number;
+  initialY?: number;
+  flipX?: boolean;
+  flipY?: boolean;
+  cords?: SharedValue<{
+    x: number;
+    y: number;
+  }>;
 }
 
 export interface SelectorGridHandle {
-  moveTo: (x: number, y: number) => void;
+  moveTo: (x: number, y: number, flip: boolean) => void;
 }
 
 const SelectorGrid = React.forwardRef<SelectorGridHandle, SelectorGridProps>(
-  ({ color = "white", size = 11 }, ref) => {
-    const GRID_SIZE = size || 11;
+  (
+    {
+      color = "white",
+      size = 11,
+      initialX = 3,
+      initialY = 3,
+      flipX = true,
+      flipY = false,
+      cords,
+    },
+    ref
+  ) => {
+    const GRID_SIZE = ensureOddNumber(size);
     const GRID_WIDTH = (GRID_SIZE - 1) * GRID_SPACING + GRID_OFFSET * 2;
     const GRID_HEIGHT = GRID_WIDTH;
-    const DOT_INITIAL_X = GRID_WIDTH - GRID_OFFSET + GRID_SPACING / 2;
 
     const [ready, setReady] = useState(false);
     const dotPosition = useSharedValue({
-      x: DOT_INITIAL_X,
-      y: DOT_INITIAL_Y,
+      x: 0,
+      y: 0,
     });
     const dragging = useSharedValue(false);
 
     const tapGesture = Gesture.Tap().onStart((e) => {
       dragging.value = false;
       dotPosition.value = {
-        x: getNearestGridPosition(e.x + GRID_OFFSET),
-        y: getNearestGridPosition(e.y + GRID_OFFSET),
+        x: getNearestGridPosition(Math.max(e.x, GRID_OFFSET)),
+        y: getNearestGridPosition(Math.max(e.y, GRID_OFFSET)),
       };
     });
 
@@ -76,11 +107,26 @@ const SelectorGrid = React.forwardRef<SelectorGridHandle, SelectorGridProps>(
       return clamp(value, min, max);
     };
 
-    const moveTo = (x: number, y: number) => {
+    const moveTo = (gridX: number, gridY: number, flip: boolean = false) => {
       "worklet";
+      let x = gridX;
+      let y = gridY;
+
+      // Apply flip if requested
+      if (flip) {
+        x = flipX ? GRID_SIZE - x + 1 : x;
+        y = flipY ? GRID_SIZE - y + 1 : y;
+      }
+
+      const safeGridX = clamp(x, 1, GRID_SIZE);
+      const safeGridY = clamp(y, 1, GRID_SIZE);
+
+      const arrayX = safeGridX - 1;
+      const arrayY = safeGridY - 1;
+
       dotPosition.value = {
-        x: getNearestGridPosition(getClampedPosition(x + GRID_OFFSET, "x")),
-        y: getNearestGridPosition(getClampedPosition(y + GRID_OFFSET, "y")),
+        x: arrayX * GRID_SPACING + GRID_OFFSET + GRID_SPACING / 2,
+        y: arrayY * GRID_SPACING + GRID_OFFSET + GRID_SPACING / 2,
       };
     };
 
@@ -93,7 +139,7 @@ const SelectorGrid = React.forwardRef<SelectorGridHandle, SelectorGridProps>(
     );
 
     const panGesture = Gesture.Pan()
-      .minDistance(0)
+      .minDistance(isWeb ? 1 : 0)
       .maxPointers(1)
       .onBegin(() => {
         dragging.value = true;
@@ -112,6 +158,13 @@ const SelectorGrid = React.forwardRef<SelectorGridHandle, SelectorGridProps>(
         };
       });
 
+    const activeIndices = useDerivedValue(() => {
+      return {
+        x: Math.floor((dotPosition.value.x - GRID_OFFSET) / GRID_SPACING),
+        y: Math.floor((dotPosition.value.y - GRID_OFFSET) / GRID_SPACING),
+      };
+    });
+
     const animatedProps = useAnimatedProps(() => {
       const isDragging = dragging.value;
       const space = GRID_SPACING / 2;
@@ -123,56 +176,44 @@ const SelectorGrid = React.forwardRef<SelectorGridHandle, SelectorGridProps>(
       };
     });
 
-    const gridDots = Array.from({ length: GRID_SIZE }, (_, x) =>
-      Array.from({ length: GRID_SIZE }, (_, y) => ({ x, y }))
-    );
-
     useEffect(() => {
-      setTimeout(() => {
-        setReady(true); // BUG: animatedProps is not ready on initial render
-      }, 0);
+      if (dotPosition.value) {
+        setReady(true); // Ensure animatedProps are ready deterministically
+      }
+    }, [dotPosition]);
+
+    useLayoutEffect(() => {
+      const targetX = flipX ? GRID_SIZE - initialX + 1 : initialX;
+      const targetY = flipY ? GRID_SIZE - initialY + 1 : initialY;
+
+      moveTo(targetX, targetY);
     }, []);
+
+    useAnimatedReaction(
+      () => dotPosition.value,
+      (currentPosition) => {
+        if (cords) {
+          const gridRange = (GRID_SIZE - 1) * GRID_SPACING;
+          const dotOffset = GRID_OFFSET + GRID_SPACING / 2;
+          const progressX = (currentPosition.x - dotOffset) / gridRange;
+          const progressY = 1 - (currentPosition.y - dotOffset) / gridRange;
+
+          cords.value = {
+            x: progressX,
+            y: progressY,
+          };
+        }
+      }
+    );
 
     return (
       <GestureDetector gesture={Gesture.Simultaneous(panGesture, tapGesture)}>
         <Svg height={GRID_HEIGHT} width={GRID_WIDTH}>
-          {gridDots.flat().map(({ x, y }, index) => {
-            const isCenter =
-              x === Math.floor(GRID_SIZE / 2) &&
-              y === Math.floor(GRID_SIZE / 2);
-            const cx = x * GRID_SPACING + GRID_OFFSET;
-            const cy = y * GRID_SPACING + GRID_OFFSET;
-            const r = isCenter ? GRID_RADIUS * 1.5 : GRID_RADIUS;
-
-            const animatedProps = useAnimatedProps(() => {
-              const isSameLine =
-                x ===
-                  Math.floor(
-                    (dotPosition.value.x - GRID_OFFSET) / GRID_SPACING
-                  ) ||
-                y ===
-                  Math.floor(
-                    (dotPosition.value.y - GRID_OFFSET) / GRID_SPACING
-                  );
-
-              return {
-                opacity: isSameLine ? 1 : 0.5,
-              };
-            });
-
-            return (
-              <AnimatedCircle
-                key={index}
-                animatedProps={animatedProps}
-                fill={isCenter ? undefined : color}
-                cx={cx}
-                cy={cy}
-                r={r}
-                stroke={isCenter ? color : undefined}
-                strokeWidth={isCenter ? 2 : undefined}
-              />
-            );
-          })}
+          <GridDots
+            gridSize={GRID_SIZE}
+            color={color}
+            activeIndices={activeIndices}
+          />
           {ready && (
             <AnimatedCircle
               animatedProps={animatedProps}

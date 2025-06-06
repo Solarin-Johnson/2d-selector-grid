@@ -1,13 +1,19 @@
 import React from "react";
-import { StyleSheet } from "react-native";
+import { Pressable, StyleSheet, TouchableOpacity, View } from "react-native";
 import { ThemedView } from "@/components/ThemedView";
-import { ThemedText } from "@/components/ThemedText";
-import SelectorGrid from "@/components/2dSelectorGrid";
+import { SelectorGridHandle } from "@/components/2dSelectorGrid";
+import { useThemeColor } from "@/hooks/useThemeColor";
+import { SafeAreaView } from "react-native-safe-area-context";
+import SelectorPad from "@/components/ui/SelectorPad";
 
 export default function Index() {
+  const text = useThemeColor({}, "text");
+
   return (
-    <ThemedView style={styles.container}>
-      <SelectorGrid />
+    <ThemedView style={{ flex: 1 }}>
+      <SafeAreaView style={styles.container}>
+        <SelectorPad />
+      </SafeAreaView>
     </ThemedView>
   );
 }
@@ -15,11 +21,11 @@ export default function Index() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: "center",
+    justifyContent: "flex-end",
     alignItems: "center",
+    paddingVertical: 24,
   },
-  text: {
-    fontSize: 24,
-    fontWeight: "bold",
+  button: {
+    marginTop: 24,
   },
 });
