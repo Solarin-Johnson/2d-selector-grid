@@ -1,3 +1,6 @@
+# Quick Demo
+https://github.com/user-attachments/assets/fb46637c-555e-4800-9b9f-eb636475a7e9
+
 # 2D Selector Grid
 
 A cross-platform React Native component for intuitive 2D value selection, built with Expo and Reanimated.
@@ -16,7 +19,7 @@ A cross-platform React Native component for intuitive 2D value selection, built 
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/yourusername/2d-selector-grid.git
+   git clone https://github.com/Solarin-Johnson/2d-selector-grid.git
    ```
 
 2. Install dependencies:
