@@ -26,7 +26,7 @@ const MAX_TOKENS = 500;
 const INITIAL_CORDS = { x: 3, y: 3 };
 const isWeb = Platform.OS === "web";
 
-const FACTOR = isWeb ? 6 : PixelRatio.getPixelSizeForLayoutSize(3);
+const FACTOR = isWeb ? 6 : PixelRatio.getPixelSizeForLayoutSize(2.8);
 
 export default function SelectorPad() {
   const gridRef = React.useRef<SelectorGridHandle>(null);
@@ -130,7 +130,7 @@ const BarItem = ({
       <AnimatedText
         style={[
           styles.barItemText,
-          { width: 38, marginLeft: isWeb ? FACTOR : 2 },
+          { width: 40, marginLeft: isWeb ? FACTOR : 2 },
         ]}
         text={text}
       />
