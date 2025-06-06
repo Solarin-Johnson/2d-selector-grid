@@ -41,7 +41,7 @@ const GridDots: React.FC<GridDotsProps> = ({
           const isSameLine =
             x === activeIndices.value.x || y === activeIndices.value.y;
           return {
-            opacity: isSameLine ? 1 : 0.4,
+            opacity: isSameLine ? 1 : 0.5,
           };
         });
 

@@ -17,6 +17,7 @@ import {
 import { ThemedText } from "../ThemedText";
 import AnimatedText from "./AnimatedText";
 import Feather from "@expo/vector-icons/Feather";
+import { ThemedView } from "../ThemedView";
 
 const MIN_TEMP = 0.1;
 const MAX_TEMP = 2.0;
@@ -25,12 +26,11 @@ const MAX_TOKENS = 500;
 const INITIAL_CORDS = { x: 3, y: 3 };
 const isWeb = Platform.OS === "web";
 
-const FACTOR = isWeb ? 5.6 : PixelRatio.getPixelSizeForLayoutSize(3);
+const FACTOR = isWeb ? 6 : PixelRatio.getPixelSizeForLayoutSize(3);
 
 export default function SelectorPad() {
   const gridRef = React.useRef<SelectorGridHandle>(null);
   const text = useThemeColor({}, "text");
-  const bg = useThemeColor({}, "background");
   const cords: SharedValue<{ x: number; y: number }> = useSharedValue({
     x: 1,
     y: 1,
@@ -45,9 +45,8 @@ export default function SelectorPad() {
   return (
     <View style={[styles.container, { backgroundColor: text + "0C" }]}>
       <Bar cords={cords} reset={handleReset} />
-      <View
+      <ThemedView
         style={{
-          backgroundColor: bg,
           padding: 6,
           borderRadius: 16,
           overflow: "hidden",
@@ -76,7 +75,7 @@ export default function SelectorPad() {
           initialX={INITIAL_CORDS.x}
           initialY={INITIAL_CORDS.y}
         />
-      </View>
+      </ThemedView>
     </View>
   );
 }
@@ -124,6 +123,7 @@ const BarItem = ({
     <View style={styles.barItem}>
       <ThemedText
         style={[styles.barItemText, { opacity: 0.6, userSelect: "none" }]}
+        numberOfLines={1}
       >
         {title.toUpperCase()}
       </ThemedText>
@@ -172,7 +172,7 @@ const styles = StyleSheet.create({
   barItem: {
     alignItems: "center",
     flexDirection: "row",
-
+    flex: 1,
     justifyContent: "center",
   },
   barItemText: {

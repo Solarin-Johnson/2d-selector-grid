@@ -1,50 +1,107 @@
-# Welcome to your Expo app 👋
+# 2D Selector Grid
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+A cross-platform React Native component for intuitive 2D value selection, built with Expo and Reanimated.
 
-## Get started
+## Features
 
-1. Install dependencies
+- Smooth, spring-based animations
+- Touch and drag gesture support
+- Responsive grid system
+- Cross-platform (iOS, Android, Web)
+- Theme-aware styling
+- Customizable grid size and colors
+- Real-time value interpolation
 
+## Installation
+
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/yourusername/2d-selector-grid.git
+   ```
+
+2. Install dependencies:
    ```bash
    npm install
    ```
 
-2. Start the app
-
+3. Start the development server:
    ```bash
-    npx expo start
+   npx expo start
    ```
 
-In the output, you'll find options to open the app in a
+## Usage
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+The SelectorGrid component can be used to create interactive 2D selection interfaces:
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+```tsx
+import SelectorGrid from '@/components/2dSelectorGrid';
 
-## Get a fresh project
+function MyComponent() {
+  const gridRef = useRef<SelectorGridHandle>(null);
+  const cords = useSharedValue({ x: 0, y: 0 });
 
-When you're ready, run:
-
-```bash
-npm run reset-project
+  return (
+    <SelectorGrid
+      ref={gridRef}
+      color="white"
+      size={11}
+      initialX={3}
+      initialY={3}
+      flipX={true}
+      flipY={false}
+      cords={cords}
+    />
+  );
+}
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+### Props
 
-## Learn more
+- `color`: Grid dot color (default: "white")
+- `size`: Grid size (must be odd number, default: 11)
+- `initialX/Y`: Initial position (1-based)
+- `flipX/Y`: Flip coordinates on respective axis
+- `cords`: SharedValue for real-time coordinate tracking
 
-To learn more about developing your project with Expo, look at the following resources:
+## Key Components
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+- **SelectorGrid**: Main component for 2D value selection
+- **GridDots**: Renders the interactive dot matrix
+- **SelectorPad**: Example implementation with temperature/token controls
 
-## Join the community
+## Technical Details
 
-Join our community of developers creating universal apps.
+Built with:
+- [Expo](https://expo.dev)
+- [React Native](https://reactnative.dev)
+- [Reanimated](https://docs.swmansion.com/react-native-reanimated/)
+- [React Native Gesture Handler](https://docs.swmansion.com/react-native-gesture-handler/)
+- [React Native SVG](https://github.com/react-native-svg/react-native-svg)
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+## Development
+
+1. Start the development server:
+   ```bash
+   npx expo start
+   ```
+
+2. Choose your platform:
+   - Press `i` for iOS simulator
+   - Press `a` for Android emulator
+   - Press `w` for web browser
+
+## License
+
+MIT
+
+## Contributing
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## Support
+
+For support, join our [Discord community](https://chat.expo.dev) or open an issue in the repository.
